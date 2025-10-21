@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Currículo PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .dynamic-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Gerador de Currículo</h1>
+            <p>Crie seu currículo profissional em PDF</p>
+        </div>
+
+        <div class="form-container">
+            <form id="curriculumForm">
+                <!-- Personalização -->
+                <div class="section">
+                    <h2 class="section-title">🎨 Personalização</h2>
+                    <div class="form-group">
+                        <label>Escolha a cor do tema</label>
+                        <div class="color-picker">
+                            <div class="color-option selected" data-color="41,128,185" style="background: rgb(41,128,185)" onclick="selectColor(this)"></div>
+                            <div class="color-option" data-color="52,73,94" style="background: rgb(52,73,94)" onclick="selectColor(this)"></div>
+                            <div class="color-option" data-color="142,68,173" style="background: rgb(142,68,173)" onclick="selectColor(this)"></div>
+                            <div class="color-option" data-color="39,174,96" style="background: rgb(39,174,96)" onclick="selectColor(this)"></div>
+                            <div class="color-option" data-color="230,126,34" style="background: rgb(230,126,34)" onclick="selectColor(this)"></div>
+                            <div class="color-option" data-color="192,57,43" style="background: rgb(192,57,43)" onclick="selectColor(this)"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Estilo do Currículo</label>
+                        <select id="template">
+                            <option value="modern">Moderno (com barra lateral colorida)</option>
+                            <option value="classic">Clássico (tradicional)</option>
+                            <option value="minimal">Minimalista (limpo e espaçado)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dados Pessoais -->
+                <div class="section">
+                    <h2 class="section-title">Dados Pessoais</h2>
+                    <div class="form-group">
+                        <label>Nome Completo *</label>
+                        <input type="text" id="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Título Profissional *</label>
+                        <input type="text" id="titulo" placeholder="Ex: Desenvolvedor Full Stack" required>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Telefone *</label>
+                            <input type="tel" id="telefone" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Cidade</label>
+                            <input type="text" id="cidade">
+                        </div>
+                        <div class="form-group">
+                            <label>LinkedIn</label>
+                            <input type="text" id="linkedin" placeholder="linkedin.com/in/seu-perfil">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Resumo Profissional</label>
+                        <textarea id="resumo" placeholder="Breve descrição sobre você e sua experiência (2-3 linhas)..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Experiência -->
+                <div class="section">
+                    <h2 class="section-title">Experiência Profissional</h2>
+                    <div id="experiencias"></div>
+                    <button type="button" class="btn btn-add" onclick="addExperiencia()">+ Adicionar Experiência</button>
+                </div>
+
+                <!-- Formação -->
+                <div class="section">
+                    <h2 class="section-title">Formação Acadêmica</h2>
+                    <div id="formacoes"></div>
+                    <button type="button" class="btn btn-add" onclick="addFormacao()">+ Adicionar Formação</button>
+                </div>
+
+                <!-- Habilidades -->
+                <div class="section">
+                    <h2 class="section-title">Habilidades</h2>
+                    <div class="form-group">
+                        <label>Liste suas principais habilidades (separadas por vírgula)</label>
+                        <textarea id="habilidades" placeholder="Ex: JavaScript, Python, Gestão de Projetos, Comunicação, Liderança..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Idiomas -->
+                <div class="section">
+                    <h2 class="section-title">Idiomas</h2>
+                    <div class="form-group">
+                        <label>Idiomas que você fala (opcional)</label>
+                        <textarea id="idiomas" placeholder="Ex: Português (Nativo), Inglês (Avançado), Espanhol (Intermediário)..."></textarea>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">Gerar PDF Profissional</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let expCount = 0;
+        let formCount = 0;
+        let selectedColor = [41, 128, 185];
+
+        function selectColor(element) {
+            document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedColor = element.getAttribute('data-color').split(',').map(Number);
+        }
+
+        function addExperiencia() {
+            expCount++;
+            const div = document.createElement('div');
+            div.className = 'dynamic-section';
+            div.id = 'exp-' + expCount;
+            div.innerHTML = `
+                <div class="item-header">
+                    <h3>Experiência #${expCount}</h3>
+                    <button type="button" class="btn btn-remove" onclick="removeElement('exp-${expCount}')">Remover</button>
+                </div>
+                <div class="form-group">
+                    <label>Cargo</label>
+                    <input type="text" name="exp_cargo[]">
+                </div>
+                <div class="form-group">
+                    <label>Empresa</label>
+                    <input type="text" name="exp_empresa[]">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Início</label>
+                        <input type="text" name="exp_inicio[]" placeholder="Ex: Jan/2020">
+                    </div>
+                    <div class="form-group">
+                        <label>Fim</label>
+                        <input type="text" name="exp_fim[]" placeholder="Ex: Dez/2022 ou Atual">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea name="exp_desc[]" placeholder="• Responsabilidade 1&#10;• Responsabilidade 2&#10;• Conquista importante"></textarea>
+                </div>
+            `;
+            document.getElementById('experiencias').appendChild(div);
+        }
+
+        function addFormacao() {
+            formCount++;
+            const div = document.createElement('div');
+            div.className = 'dynamic-section';
+            div.id = 'form-' + formCount;
+            div.innerHTML = `
+                <div class="item-header">
+                    <h3>Formação #${formCount}</h3>
+                    <button type="button" class="btn btn-remove" onclick="removeElement('form-${formCount}')">Remover</button>
+                </div>
+                <div class="form-group">
+                    <label>Curso</label>
+                    <input type="text" name="form_curso[]">
+                </div>
+                <div class="form-group">
+                    <label>Instituição</label>
+                    <input type="text" name="form_instituicao[]">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Início</label>
+                        <input type="text" name="form_inicio[]" placeholder="Ex: 2018">
+                    </div>
+                    <div class="form-group">
+                        <label>Conclusão</label>
+                        <input type="text" name="form_fim[]" placeholder="Ex: 2022 ou Cursando">
+                    </div>
+                </div>
+            `;
+            document.getElementById('formacoes').appendChild(div);
+        }
+
+        function removeElement(id) {
+            document.getElementById(id).remove();
+        }
+
+        addExperiencia();
+        addFormacao();
+
+        document.getElementById('curriculumForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generatePDF();
+        });
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const template = document.getElementById('template').value;
+
+            if (template === 'modern') {
+                generateModernPDF();
+            } else if (template === 'classic') {
+                generateClassicPDF();
+            } else {
+                generateMinimalPDF();
+            }
+        }
+
+        function generateModernPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const [r, g, b] = selectedColor;
+
+            // Barra lateral colorida
+            doc.setFillColor(r, g, b);
+            doc.rect(0, 0, 70, 297, 'F');
+
+            // Nome e título
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            const nome = document.getElementById('nome').value;
+            const nomeLines = doc.splitTextToSize(nome, 60);
+            doc.text(nomeLines, 10, 25);
+
+            let sideY = 25 + (nomeLines.length * 7);
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            const titulo = document.getElementById('titulo').value;
+            const tituloLines = doc.splitTextToSize(titulo, 60);
+            doc.text(tituloLines, 10, sideY);
+            sideY += (tituloLines.length * 6) + 10;
+
+            // Contatos na barra lateral
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.text('CONTATO', 10, sideY);
+            sideY += 6;
+            doc.setFont(undefined, 'normal');
+
+            const email = document.getElementById('email').value;
+            const emailLines = doc.splitTextToSize(email, 55);
+            doc.text(emailLines, 10, sideY);
+            sideY += (emailLines.length * 5) + 3;
+
+            doc.text(document.getElementById('telefone').value, 10, sideY);
+            sideY += 8;
+
+            const cidade = document.getElementById('cidade').value;
+            if (cidade) {
+                doc.text(cidade, 10, sideY);
+                sideY += 8;
+            }
+
+            const linkedin = document.getElementById('linkedin').value;
+            if (linkedin) {
+                const linkedinLines = doc.splitTextToSize(linkedin, 55);
+                doc.text(linkedinLines, 10, sideY);
+                sideY += (linkedinLines.length * 5) + 10;
+            } else {
+                sideY += 5;
+            }
+
+            // Habilidades na barra lateral
+            const habilidades = document.getElementById('habilidades').value;
+            if (habilidades) {
+                doc.setFont(undefined, 'bold');
+                doc.text('HABILIDADES', 10, sideY);
+                sideY += 6;
+                doc.setFont(undefined, 'normal');
+
+                const habArray = habilidades.split(',').map(h => h.trim());
+                habArray.forEach(hab => {
+                    if (sideY > 280) return;
+                    const habLines = doc.splitTextToSize('• ' + hab, 55);
+                    doc.text(habLines, 10, sideY);
+                    sideY += (habLines.length * 5);
+                });
+                sideY += 5;
+            }
+
+            // Idiomas na barra lateral
+            const idiomas = document.getElementById('idiomas').value;
+            if (idiomas && sideY < 260) {
+                doc.setFont(undefined, 'bold');
+                doc.text('IDIOMAS', 10, sideY);
+                sideY += 6;
+                doc.setFont(undefined, 'normal');
+
+                const idiomaArray = idiomas.split(',').map(i => i.trim());
+                idiomaArray.forEach(idioma => {
+                    if (sideY > 280) return;
+                    const idiomaLines = doc.splitTextToSize('• ' + idioma, 55);
+                    doc.text(idiomaLines, 10, sideY);
+                    sideY += (idiomaLines.length * 5);
+                });
+            }
+
+            // Conteúdo principal
+            doc.setTextColor(0, 0, 0);
+            let y = 25;
+            const leftMargin = 75;
+            const contentWidth = 125;
+
+            // Resumo
+            const resumo = document.getElementById('resumo').value;
+            if (resumo) {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                const resumoLines = doc.splitTextToSize(resumo, contentWidth);
+                doc.text(resumoLines, leftMargin, y);
+                y += resumoLines.length * 5 + 8;
+            }
+
+            // Linha separadora
+            doc.setDrawColor(r, g, b);
+            doc.setLineWidth(0.5);
+            doc.line(leftMargin, y, 200, y);
+            y += 8;
+
+            // Experiências
+            const experiencias = document.querySelectorAll('[name="exp_cargo[]"]');
+            if (experiencias.length > 0 && experiencias[0].value) {
+                doc.setFontSize(13);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('EXPERIÊNCIA PROFISSIONAL', leftMargin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 7;
+
+                experiencias.forEach((exp, i) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        doc.setFillColor(r, g, b);
+                        doc.rect(0, 0, 70, 297, 'F');
+                        y = 20;
+                    }
+
+                    const cargo = exp.value;
+                    if (!cargo) return;
+
+                    const empresa = document.querySelectorAll('[name="exp_empresa[]"]')[i].value;
+                    const inicio = document.querySelectorAll('[name="exp_inicio[]"]')[i].value;
+                    const fim = document.querySelectorAll('[name="exp_fim[]"]')[i].value;
+                    const desc = document.querySelectorAll('[name="exp_desc[]"]')[i].value;
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(cargo, leftMargin, y);
+                    y += 5;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'italic');
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`${empresa} | ${inicio} - ${fim}`, leftMargin, y);
+                    doc.setTextColor(0, 0, 0);
+                    y += 6;
+
+                    if (desc) {
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(9);
+                        const descLines = doc.splitTextToSize(desc, contentWidth);
+                        doc.text(descLines, leftMargin, y);
+                        y += descLines.length * 4.5;
+                    }
+                    y += 5;
+                });
+                y += 3;
+            }
+
+            // Formação
+            const formacoes = document.querySelectorAll('[name="form_curso[]"]');
+            if (formacoes.length > 0 && formacoes[0].value) {
+                if (y > 250) {
+                    doc.addPage();
+                    doc.setFillColor(r, g, b);
+                    doc.rect(0, 0, 70, 297, 'F');
+                    y = 20;
+                }
+
+                doc.setFontSize(13);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('FORMAÇÃO ACADÊMICA', leftMargin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 7;
+
+                formacoes.forEach((form, i) => {
+                    const curso = form.value;
+                    if (!curso) return;
+
+                    const instituicao = document.querySelectorAll('[name="form_instituicao[]"]')[i].value;
+                    const inicio = document.querySelectorAll('[name="form_inicio[]"]')[i].value;
+                    const fim = document.querySelectorAll('[name="form_fim[]"]')[i].value;
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(curso, leftMargin, y);
+                    y += 5;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'italic');
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`${instituicao} | ${inicio} - ${fim}`, leftMargin, y);
+                    doc.setTextColor(0, 0, 0);
+                    y += 7;
+                });
+            }
+
+            doc.save('curriculo-moderno.pdf');
+        }
+
+        function generateClassicPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const [r, g, b] = selectedColor;
+            const margin = 20;
+            let y = 20;
+
+            // Cabeçalho centralizado
+            doc.setFontSize(22);
+            doc.setFont(undefined, 'bold');
+            doc.text(document.getElementById('nome').value, 105, y, { align: 'center' });
+            y += 8;
+
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(r, g, b);
+            doc.text(document.getElementById('titulo').value, 105, y, { align: 'center' });
+            doc.setTextColor(0, 0, 0);
+            y += 10;
+
+            // Informações de contato
+            doc.setFontSize(9);
+            const contactLine = `${document.getElementById('email').value} • ${document.getElementById('telefone').value}`;
+            doc.text(contactLine, 105, y, { align: 'center' });
+            y += 5;
+
+            const cidade = document.getElementById('cidade').value;
+            const linkedin = document.getElementById('linkedin').value;
+            if (cidade || linkedin) {
+                const extraLine = [cidade, linkedin].filter(Boolean).join(' • ');
+                doc.text(extraLine, 105, y, { align: 'center' });
+                y += 8;
+            } else {
+                y += 5;
+            }
+
+            // Linha divisória
+            doc.setDrawColor(200, 200, 200);
+            doc.line(margin, y, 190, y);
+            y += 8;
+
+            // Resumo Profissional
+            const resumo = document.getElementById('resumo').value;
+            if (resumo) {
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('RESUMO PROFISSIONAL', margin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 6;
+
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                const resumoLines = doc.splitTextToSize(resumo, 170);
+                doc.text(resumoLines, margin, y);
+                y += resumoLines.length * 5 + 8;
+            }
+
+            // Experiência Profissional
+            const experiencias = document.querySelectorAll('[name="exp_cargo[]"]');
+            if (experiencias.length > 0 && experiencias[0].value) {
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('EXPERIÊNCIA PROFISSIONAL', margin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 7;
+
+                experiencias.forEach((exp, i) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 20;
+                    }
+
+                    const cargo = exp.value;
+                    if (!cargo) return;
+
+                    const empresa = document.querySelectorAll('[name="exp_empresa[]"]')[i].value;
+                    const inicio = document.querySelectorAll('[name="exp_inicio[]"]')[i].value;
+                    const fim = document.querySelectorAll('[name="exp_fim[]"]')[i].value;
+                    const desc = document.querySelectorAll('[name="exp_desc[]"]')[i].value;
+
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(cargo, margin, y);
+                    
+                    doc.setFont(undefined, 'normal');
+                    const periodo = `${inicio} - ${fim}`;
+                    doc.text(periodo, 190, y, { align: 'right' });
+                    y += 5;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'italic');
+                    doc.text(empresa, margin, y);
+                    y += 6;
+
+                    if (desc) {
+                        doc.setFont(undefined, 'normal');
+                        doc.setFontSize(9);
+                        const descLines = doc.splitTextToSize(desc, 170);
+                        doc.text(descLines, margin, y);
+                        y += descLines.length * 4.5 + 5;
+                    }
+                });
+                y += 3;
+            }
+
+            // Formação Acadêmica
+            const formacoes = document.querySelectorAll('[name="form_curso[]"]');
+            if (formacoes.length > 0 && formacoes[0].value) {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('FORMAÇÃO ACADÊMICA', margin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 7;
+
+                formacoes.forEach((form, i) => {
+                    const curso = form.value;
+                    if (!curso) return;
+
+                    const instituicao = document.querySelectorAll('[name="form_instituicao[]"]')[i].value;
+                    const inicio = document.querySelectorAll('[name="form_inicio[]"]')[i].value;
+                    const fim = document.querySelectorAll('[name="form_fim[]"]')[i].value;
+
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(curso, margin, y);
+                    
+                    doc.setFont(undefined, 'normal');
+                    const periodo = `${inicio} - ${fim}`;
+                    doc.text(periodo, 190, y, { align: 'right' });
+                    y += 5;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'italic');
+                    doc.text(instituicao, margin, y);
+                    y += 7;
+                });
+                y += 3;
+            }
+
+            // Habilidades
+            const habilidades = document.getElementById('habilidades').value;
+            if (habilidades) {
+                if (y > 240) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('HABILIDADES', margin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 6;
+
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                const habLines = doc.splitTextToSize(habilidades, 170);
+                doc.text(habLines, margin, y);
+                y += habLines.length * 4.5 + 5;
+            }
+
+            // Idiomas
+            const idiomas = document.getElementById('idiomas').value;
+            if (idiomas) {
+                if (y > 240) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(r, g, b);
+                doc.text('IDIOMAS', margin, y);
+                doc.setTextColor(0, 0, 0);
+                y += 6;
+
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                const idiomaLines = doc.splitTextToSize(idiomas, 170);
+                doc.text(idiomaLines, margin, y);
+            }
+
+            doc.save('curriculo-classico.pdf');
+        }
+
+        function generateMinimalPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const [r, g, b] = selectedColor;
+            const margin = 25;
+            let y = 30;
+
+            // Nome grande e minimalista
+            doc.setFontSize(28);
+            doc.setFont(undefined, 'bold');
+            doc.text(document.getElementById('nome').value, margin, y);
+            y += 10;
+
+            // Título
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(r, g, b);
+            doc.text(document.getElementById('titulo').value, margin, y);
+            doc.setTextColor(0, 0, 0);
+            y += 15;
+
+            // Contatos em linha
+            doc.setFontSize(9);
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
+            const cidade = document.getElementById('cidade').value;
+            const linkedin = document.getElementById('linkedin').value;
+
+            let contactInfo = [email, telefone, cidade, linkedin].filter(Boolean);
+            doc.text(contactInfo.join('  •  '), margin, y);
+            y += 12;
+
+            // Resumo
+            const resumo = document.getElementById('resumo').value;
+            if (resumo) {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                const resumoLines = doc.splitTextToSize(resumo, 160);
+                doc.text(resumoLines, margin, y);
+                y += resumoLines.length * 6 + 10;
+            }
+
+            // Experiências
+            const experiencias = document.querySelectorAll('[name="exp_cargo[]"]');
+            if (experiencias.length > 0 && experiencias[0].value) {
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Experiência', margin, y);
+                y += 8;
+
+                // Linha fina abaixo do título
+                doc.setDrawColor(r, g, b);
+                doc.setLineWidth(0.3);
+                doc.line(margin, y, 185, y);
+                y += 8;
+
+                experiencias.forEach((exp, i) => {
+                    if (y > 270) {
+                        doc.addPage();
+                        y = 25;
+                    }
+
+                    const cargo = exp.value;
+                    if (!cargo) return;
+
+                    const empresa = document.querySelectorAll('[name="exp_empresa[]"]')[i].value;
+                    const inicio = document.querySelectorAll('[name="exp_inicio[]"]')[i].value;
+                    const fim = document.querySelectorAll('[name="exp_fim[]"]')[i].value;
+                    const desc = document.querySelectorAll('[name="exp_desc[]"]')[i].value;
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(cargo, margin, y);
+                    y += 5;
+
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(empresa, margin, y);
+                    
+                    doc.setTextColor(120, 120, 120);
+                    doc.text(`${inicio} - ${fim}`, 185, y, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                    y += 6;
+
+                    if (desc) {
+                        doc.setFontSize(9);
+                        doc.setFont(undefined, 'normal');
+                        const descLines = doc.splitTextToSize(desc, 160);
+                        doc.text(descLines, margin, y);
+                        y += descLines.length * 5 + 8;
+                    } else {
+                        y += 5;
+                    }
+                });
+                y += 5;
+            }
+
+            // Formação
+            const formacoes = document.querySelectorAll('[name="form_curso[]"]');
+            if (formacoes.length > 0 && formacoes[0].value) {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 25;
+                }
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('Formação', margin, y);
+                y += 8;
+
+                doc.setDrawColor(r, g, b);
+                doc.setLineWidth(0.3);
+                doc.line(margin, y, 185, y);
+                y += 8;
+
+                formacoes.forEach((form, i) => {
+                    const curso = form.value;
+                    if (!curso) return;
+
+                    const instituicao = document.querySelectorAll('[name="form_instituicao[]"]')[i].value;
+                    const inicio = document.querySelectorAll('[name="form_inicio[]"]')[i].value;
+                    const fim = document.querySelectorAll('[name="form_fim[]"]')[i].value;
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(curso, margin, y);
+                    y += 5;
+
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(instituicao, margin, y);
+                    
+                    doc.setTextColor(120, 120, 120);
+                    doc.text(`${inicio} - ${fim}`, 185, y, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                    y += 8;
+                });
+                y += 5;
+            }
+
+            // Habilidades e Idiomas lado a lado
+            const habilidades = document.getElementById('habilidades').value;
+            const idiomas = document.getElementById('idiomas').value;
+
+            if (habilidades || idiomas) {
+                if (y > 230) {
+                    doc.addPage();
+                    y = 25;
+                }
+
+                const startY = y;
+
+                // Habilidades
+                if (habilidades) {
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Habilidades', margin, y);
+                    y += 8;
+
+                    doc.setDrawColor(r, g, b);
+                    doc.setLineWidth(0.3);
+                    doc.line(margin, y, 95, y);
+                    y += 7;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    const habArray = habilidades.split(',').map(h => h.trim());
+                    habArray.forEach(hab => {
+                        if (y > 280) return;
+                        doc.text('• ' + hab, margin, y);
+                        y += 5;
+                    });
+                }
+
+                // Idiomas
+                if (idiomas) {
+                    y = startY;
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Idiomas', 110, y);
+                    y += 8;
+
+                    doc.setDrawColor(r, g, b);
+                    doc.setLineWidth(0.3);
+                    doc.line(110, y, 185, y);
+                    y += 7;
+
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    const idiomaArray = idiomas.split(',').map(i => i.trim());
+                    idiomaArray.forEach(idioma => {
+                        if (y > 280) return;
+                        doc.text('• ' + idioma, 110, y);
+                        y += 5;
+                    });
+                }
+            }
+
+            doc.save('curriculo-minimalista.pdf');
+        }
+    </script>
+</body>
+</html>
