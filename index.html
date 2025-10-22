@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Currículo PDF</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.42.3/docxtemplater.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -301,7 +304,8 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" class="btn btn-primary">Gerar PDF Profissional</button>
+                    <button type="submit" class="btn btn-primary">📄 Gerar PDF</button>
+                    <button type="button" class="btn btn-primary" onclick="generateWord()">📝 Gerar Word</button>
                 </div>
             </form>
         </div>
@@ -1009,6 +1013,102 @@
             }
 
             doc.save('curriculo-minimalista.pdf');
+        }
+
+        function generateWord() {
+            const nome = document.getElementById('nome').value;
+            const titulo = document.getElementById('titulo').value;
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
+            const cidade = document.getElementById('cidade').value;
+            const linkedin = document.getElementById('linkedin').value;
+            const resumo = document.getElementById('resumo').value;
+            const habilidades = document.getElementById('habilidades').value;
+            const idiomas = document.getElementById('idiomas').value;
+
+            // Construir experiências
+            let experienciasHTML = '';
+            const experiencias = document.querySelectorAll('[name="exp_cargo[]"]');
+            experiencias.forEach((exp, i) => {
+                const cargo = exp.value;
+                if (!cargo) return;
+
+                const empresa = document.querySelectorAll('[name="exp_empresa[]"]')[i].value;
+                const inicio = document.querySelectorAll('[name="exp_inicio[]"]')[i].value;
+                const fim = document.querySelectorAll('[name="exp_fim[]"]')[i].value;
+                const desc = document.querySelectorAll('[name="exp_desc[]"]')[i].value;
+
+                experienciasHTML += `
+                    <p><strong>${cargo}</strong></p>
+                    <p><em>${empresa} | ${inicio} - ${fim}</em></p>
+                    <p>${desc}</p>
+                    <p></p>
+                `;
+            });
+
+            // Construir formações
+            let formacoesHTML = '';
+            const formacoes = document.querySelectorAll('[name="form_curso[]"]');
+            formacoes.forEach((form, i) => {
+                const curso = form.value;
+                if (!curso) return;
+
+                const instituicao = document.querySelectorAll('[name="form_instituicao[]"]')[i].value;
+                const inicio = document.querySelectorAll('[name="form_inicio[]"]')[i].value;
+                const fim = document.querySelectorAll('[name="form_fim[]"]')[i].value;
+
+                formacoesHTML += `
+                    <p><strong>${curso}</strong></p>
+                    <p><em>${instituicao} | ${inicio} - ${fim}</em></p>
+                    <p></p>
+                `;
+            });
+
+            // Criar documento HTML completo
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        h1 { color: #2c3e50; font-size: 28px; margin-bottom: 5px; }
+                        h2 { color: #3498db; font-size: 14px; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+                        .subtitle { color: #3498db; font-size: 16px; margin-bottom: 10px; }
+                        .contact { font-size: 12px; color: #666; margin-bottom: 20px; }
+                        p { font-size: 12px; line-height: 1.6; margin: 5px 0; }
+                        strong { color: #2c3e50; }
+                        em { color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${nome}</h1>
+                    <div class="subtitle">${titulo}</div>
+                    <div class="contact">
+                        ${email} • ${telefone}${cidade ? ' • ' + cidade : ''}${linkedin ? ' • ' + linkedin : ''}
+                    </div>
+                    
+                    ${resumo ? `<h2>RESUMO PROFISSIONAL</h2><p>${resumo}</p>` : ''}
+                    
+                    ${experienciasHTML ? `<h2>EXPERIÊNCIA PROFISSIONAL</h2>${experienciasHTML}` : ''}
+                    
+                    ${formacoesHTML ? `<h2>FORMAÇÃO ACADÊMICA</h2>${formacoesHTML}` : ''}
+                    
+                    ${habilidades ? `<h2>HABILIDADES</h2><p>${habilidades}</p>` : ''}
+                    
+                    ${idiomas ? `<h2>IDIOMAS</h2><p>${idiomas}</p>` : ''}
+                </body>
+                </html>
+            `;
+
+            // Criar blob e download
+            const blob = new Blob(['\ufeff', htmlContent], {
+                type: 'application/msword'
+            });
+            
+            saveAs(blob, 'curriculo.doc');
+            
+            alert('✅ Currículo em Word gerado com sucesso! O arquivo foi baixado.');
         }
     </script>
 </body>
