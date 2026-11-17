@@ -1,0 +1,11 @@
+# Ignora builds e arquivos gerados do Next.js
+.next/** linguist-generated
+out/** linguist-generated
+public/** linguist-vendored
+
+# Ignora arquivos HTML residuais
+*.html linguist-detectable=false
+
+# Garante que TypeScript e TSX sejam contabilizados
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
